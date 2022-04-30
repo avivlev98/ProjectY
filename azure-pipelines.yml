@@ -49,7 +49,7 @@ stages:
   jobs:
   - deployment:   
     displayName: DeploytoAKS
-    environment: 'k8s-flag.project-y'
+    environment: 'project-y-ENV.project-y'
     pool:  
       vmImage: ubuntu-latest
     strategy:
