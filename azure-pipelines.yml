@@ -1,0 +1,90 @@
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+  imageRepo: myflagacr3210
+  urlRepo: myflagacr3210.azurecr.io
+  secretacr: k8ssecret
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: Build an image
+      inputs:
+        containerRegistry: 'acr-srv-project-y'
+        repository: '$(imageRepo)'
+        command: 'buildAndPush'
+        Dockerfile: '$(Build.SourcesDirectory)/result/Dockerfile'
+        tags: '$(tag)'
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'acr-srv-project-y'
+        repository: '$(imageRepo)'
+        command: 'buildAndPush'
+        Dockerfile: '$(Build.SourcesDirectory)/vote/Dockerfile'
+        tags: '$(tag)'
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Pipeline.Workspace)/s/k8s-specifications'
+        artifact: 'manifests'
+        publishLocation: 'pipeline'
+
+- stage: Deploy
+  displayName: Deployment
+  jobs:
+  - deployment:   
+    displayName: DeploytoAKS
+    pool:  
+      vmImage: ubuntu-latest
+    dependsOn: Build
+    variables: # several syntaxes, see specific section
+    environment: string  # target environment name and optionally a resource name to record the deployment history; format: <environment-name>.<resource-name>
+    strategy:
+      runOnce:    #rolling, canary are the other strategies that are supported
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: 'manifests'
+              targetPath: '$(Pipeline.Workspace)/manifests'
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'createSecret'
+              kubernetesServiceConnection: 'flag-aks-project-y'
+              namespace: 'project-y'
+              secretType: 'dockerRegistry'
+              secretName: '$(secretacr)'
+              dockerRegistryEndpoint: 'acr-srv-project-y'
+          
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              kubernetesServiceConnection: 'k8s-flag-project-y'
+              namespace: 'project-y'
+              manifests: |
+                '$(Pipeline.Workspace)/manifests/postgres-deploy.yaml'
+                '$(Pipeline.Workspace)/manifests/postgres-service.yaml'
+                '$(Pipeline.Workspace)/manifests/redis-deploy.yaml'
+                '$(Pipeline.Workspace)/manifests/redis-service.yaml'
+                '$(Pipeline.Workspace)/manifests/result-app-deploy.yaml'
+                '$(Pipeline.Workspace)/manifests/result-app-service.yaml'
+                '$(Pipeline.Workspace)/manifests/voting-app-deploy.yaml'
+                '$(Pipeline.Workspace)/manifests/voting-app-service.yaml'
+
+              containers: '$(urlRepo)/$(imageRepo)/$(tag)'
+
+
