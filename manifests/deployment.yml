@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: avivlevprojecty 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: avivlevprojecty
+  template:
+    metadata:
+      labels:
+        app: avivlevprojecty 
+    spec:
+      containers:
+        - name: avivlevprojecty 
+          image: myflagacr3210.azurecr.io/avivlevprojecty
+          ports:
+          - containerPort: 80
