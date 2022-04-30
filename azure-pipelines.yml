@@ -45,12 +45,13 @@ stages:
 - stage: Deploy
   displayName: Deployment
   dependsOn: Build
-  pool:  
-      vmImage: ubuntu-latest 
+
   jobs:
   - deployment:   
     displayName: DeploytoAKS
     environment: 'k8s-flag.project-y'
+    pool:  
+      vmImage: ubuntu-latest
     strategy:
       runOnce:  
         deploy:
