@@ -45,11 +45,12 @@ stages:
 - stage: Deploy
   displayName: Deployment
   dependsOn: Build
+  pool:  
+      vmImage: ubuntu-latest 
   jobs:
   - deployment:   
     displayName: DeploytoAKS
-    pool:  
-      vmImage: ubuntu-latest
+    environment: 'k8s-flag.project-y'
     strategy:
       runOnce:  
         deploy:
@@ -62,7 +63,6 @@ stages:
           - task: KubernetesManifest@0
             inputs:
               action: 'createSecret'
-              kubernetesServiceConnection: 'flag-aks-project-y'
               namespace: 'project-y'
               secretType: 'dockerRegistry'
               secretName: '$(secretacr)'
@@ -71,7 +71,6 @@ stages:
           - task: KubernetesManifest@0
             inputs:
               action: 'deploy'
-              kubernetesServiceConnection: 'k8s-flag-project-y'
               namespace: 'project-y'
               manifests: |
                 '$(Pipeline.Workspace)/manifests/postgres-deploy.yaml'
