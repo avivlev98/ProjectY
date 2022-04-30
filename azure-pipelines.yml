@@ -7,9 +7,7 @@ resources:
 
 variables:
   tag: '$(Build.BuildId)'
-
   imageRepo: myflagacr3210
-  # Agent VM image name
   vmImageName: 'ubuntu-latest'
 
 
@@ -37,14 +35,14 @@ stages:
         repository: '$(imageRepo)'
         command: 'buildAndPush'
         Dockerfile: '$(Build.SourcesDirectory)/vote/Dockerfile'
-        
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'acr-srv-project-y'
-        repository: '$(imageRepo)'
-        command: 'buildAndPush'
-        Dockerfile: '$(Build.SourcesDirectory)/worker/Dockerfile'
-        
+  ####      
+   ## - task: Docker@2
+    ##  inputs:
+       ### containerRegistry: 'acr-srv-project-y'
+        ###repository: '$(imageRepo)'
+        ###command: 'buildAndPush'
+       ### Dockerfile: '$(Build.SourcesDirectory)/worker/Dockerfile'
+        #####
     - task: PublishPipelineArtifact@1
       inputs:
         targetPath: '$(Pipeline.Workspace)/s/k8s-specifications'
@@ -96,7 +94,7 @@ stages:
                 $(Pipeline.Workspace)/manifests/result-app-service.yaml
                 $(Pipeline.Workspace)/manifests/voting-app-deploy.yaml
                 $(Pipeline.Workspace)/manifests/voting-app-service.yaml
-                $(Pipeline.Workspace)/manifests/worker-app-deploy.yaml
+               ## $(Pipeline.Workspace)/manifests/worker-app-deploy.yaml
 
               containers: |
                 $(repoURl)/$(imageRepo):$(tag)
