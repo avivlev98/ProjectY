@@ -74,14 +74,14 @@ stages:
               action: 'deploy'
               namespace: 'project-y'
               manifests: |
-                '$(Pipeline.Workspace)/manifests/postgres-deploy.yaml'
-                '$(Pipeline.Workspace)/manifests/postgres-service.yaml'
-                '$(Pipeline.Workspace)/manifests/redis-deploy.yaml'
-                '$(Pipeline.Workspace)/manifests/redis-service.yaml'
-                '$(Pipeline.Workspace)/manifests/result-app-deploy.yaml'
-                '$(Pipeline.Workspace)/manifests/result-app-service.yaml'
-                '$(Pipeline.Workspace)/manifests/voting-app-deploy.yaml'
-                '$(Pipeline.Workspace)/manifests/voting-app-service.yaml'
+                $(Pipeline.Workspace)/manifests/postgres-deploy.yaml
+                $(Pipeline.Workspace)/manifests/postgres-service.yaml
+                $(Pipeline.Workspace)/manifests/redis-deploy.yaml
+                $(Pipeline.Workspace)/manifests/redis-service.yaml
+                $(Pipeline.Workspace)/manifests/result-app-deploy.yaml
+                $(Pipeline.Workspace)/manifests/result-app-service.yaml
+                $(Pipeline.Workspace)/manifests/voting-app-deploy.yaml
+                $(Pipeline.Workspace)/manifests/voting-app-service.yaml
 
               containers: '$(urlRepo)/$(imageRepo)/$(tag)'
 
