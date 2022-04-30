@@ -50,7 +50,6 @@ stages:
     pool:  
       vmImage: ubuntu-latest
     dependsOn: Build
-    variables: # several syntaxes, see specific section
     environment: string  # target environment name and optionally a resource name to record the deployment history; format: <environment-name>.<resource-name>
     strategy:
       runOnce:    #rolling, canary are the other strategies that are supported
