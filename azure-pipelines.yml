@@ -44,12 +44,12 @@ stages:
 
 - stage: Deploy
   displayName: Deployment
+  dependsOn: Build
   jobs:
   - deployment:   
     displayName: DeploytoAKS
     pool:  
       vmImage: ubuntu-latest
-    dependsOn: Build
     strategy:
       runOnce:  
         deploy:
