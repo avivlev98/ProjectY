@@ -43,11 +43,11 @@ stages:
 
 - stage: Deployment
   jobs:
-  - deployment: deploy-to-aks
+  - deployment: deploytoAks
     pool:
       vmImage: 'ubuntu-latest'
     environment: 'project-y-ENV.project-y'
-    strategy:                  
+    strategy:
       runOnce:
         deploy:
           steps:
@@ -68,7 +68,6 @@ stages:
           - task: KubernetesManifest@0
             inputs:
               action: 'deploy'
-              kubernetesServiceConnection: 'project-y-ENV-flag-aks-project-y-1651350069227'
               namespace: 'project-y'
               manifests: |
                 $(Pipeline.Workspace)/manifests/postgres-deploy.yaml
