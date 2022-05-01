@@ -8,7 +8,7 @@ variables:
   tag: '$(Build.BuildId)'
   imageRepo: myflagacr3210
   urlRepo: myflagacr3210.azurecr.io
-  secretACR: acrTopsecret125
+  secretACR: k8ssecret5
 
 stages:
 - stage: Build
