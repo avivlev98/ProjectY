@@ -1,0 +1,82 @@
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+  imageRepo: myflagacr3210
+  urlRepo: myflagacr3210.azurecr.io
+  secretACR: AcrTopsecret!
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: Build an image
+      inputs:
+        containerRegistry: 'acr-srv-project-y'
+        repository: '$(imageRepo)'
+        command: 'buildAndPush'
+        Dockerfile: '$(Build.SourcesDirectory)/result/Dockerfile'
+        tags: '$(tag)'
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'acr-srv-project-y'
+        repository: '$(imageRepo)'
+        command: 'buildAndPush'
+        Dockerfile: '$(Build.SourcesDirectory)/vote/Dockerfile'
+        tags: '$(tag)'
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Pipeline.Workspace)/s/k8s-specifications'
+        artifact: 'manifests'
+        publishLocation: 'pipeline'
+
+- stage: Deployment
+  jobs:
+  - deployment: deploy-to-aks
+    pool:
+      vmImage: 'ubuntu-latest'
+    environment: 'project-y-ENV.project-y'
+    strategy:                  
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: 'manifests'
+              itemPattern: 
+              targetPath: '$(Pipeline.Workspace)/manifests'
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'createSecret'
+              namespace: 'project-y'
+              secretType: 'dockerRegistry'
+              secretName: '$(secretACR)'
+              dockerRegistryEndpoint: 'acr-srv-project-y'
+          
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              kubernetesServiceConnection: 'project-y-ENV-flag-aks-project-y-1651350069227'
+              namespace: 'project-y'
+              manifests: |
+                $(Pipeline.Workspace)/manifests/postgres-deploy.yaml
+                $(Pipeline.Workspace)/manifests/postgres-service.yaml
+                $(Pipeline.Workspace)/manifests/redis-deploy.yaml
+                $(Pipeline.Workspace)/manifests/redis-service.yaml
+                $(Pipeline.Workspace)/manifests/result-app-deploy.yaml
+                $(Pipeline.Workspace)/manifests/result-app-service.yaml
+                $(Pipeline.Workspace)/manifests/voting-app-deploy.yaml
+                $(Pipeline.Workspace)/manifests/voting-app-service.yaml
+              containers: '$(urlRepo)/$(imageRepo)/$(tag)'
